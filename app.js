@@ -744,7 +744,6 @@ function closeRefUploadModal(){document.getElementById("refUploadModal").style.d
 
 //====================页面加载完成初始化====================
 window.onload=function(){
-    // 初始化Chart.js（首页图表占位）
     if(typeof Chart!="undefined"){
         let ctx1=document.getElementById("chart1");
         let ctx2=document.getElementById("chart2");
