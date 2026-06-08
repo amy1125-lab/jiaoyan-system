@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>研学教务教研管理系统</title>
-<!-- 必须用相对路径，不要用pages域名 -->
 <link rel="stylesheet" href="./style.css">
-<!-- 更换为稳定无404的Chart.js CDN -->
 <script src="https://fastly.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -61,60 +59,66 @@
     </header>
     <div class="sys-body">
         <aside class="sys-sidebar">
-            <div class="menu-item"><a onclick="switchModule('homePanel')">首页数据看板</a></div>
+            <div class="menu-item active"><a onclick="switchModule('homePanel')">首页数据看板</a></div>
             <div class="menu-item">
                 <a onclick="toggleMenu('planSub')">教学计划管理</a>
-                <div id="planSub" class="submenu"><a onclick="switchModule('planPanel')">计划列表</a></div>
+                <div id="planSub" class="submenu">
+                    <a onclick="switchModule('planPanel')">教学计划列表</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('taskSub')">任务分派管理</a>
-                <div id="taskSub" class="submenu"><a onclick="switchModule('taskPanel')">任务清单</a></div>
+                <div id="taskSub" class="submenu">
+                    <a onclick="switchModule('taskPanel')">任务清单</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('annoSub')">部门公告</a>
-                <div id="annoSub" class="submenu"><a onclick="switchModule('annoPanel')">公告发布/列表</a></div>
+                <div id="annoSub" class="submenu">
+                    <a onclick="switchModule('annoPanel')">公告发布/列表</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('researchSub')">教研活动</a>
-                <div id="researchSub" class="submenu"><a onclick="switchModule('researchPanel')">教研记录</a></div>
+                <div id="researchSub" class="submenu">
+                    <a onclick="switchModule('researchPanel')">教研记录</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('listenSub')">听评课管理</a>
-                <div id="listenSub" class="submenu"><a onclick="switchModule('listenPanel')">听课记录</a></div>
+                <div id="listenSub" class="submenu">
+                    <a onclick="switchModule('listenPanel')">听课记录</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('courseSub')">课程资源库</a>
-                <div id="courseSub" class="submenu"><a onclick="switchModule('coursePanel')">课程管理</a></div>
+                <div id="courseSub" class="submenu">
+                    <a onclick="switchModule('coursePanel')">课程管理</a>
+                </div>
             </div>
             <div class="menu-item">
                 <a onclick="toggleMenu('templateSub')">文档模板库</a>
-                <div id="templateSub" class="submenu"><a onclick="switchModule('templatePanel')">模板管理</a></div>
+                <div id="templateSub" class="submenu">
+                    <a onclick="switchModule('templatePanel')">模板管理</a>
+                </div>
             </div>
-            <!--AI课程研发菜单-->
             <div class="menu-item"><a onclick="switchModule('aiCoursePanel')">AI课程研发</a></div>
-            <!--【新增：教学中心-课后教学反思菜单】-->
             <div class="menu-item">
                 <a onclick="toggleMenu('refCenterSub')">教学中心</a>
                 <div id="refCenterSub" class="submenu">
                     <a onclick="switchModule('reflectionManage')">课后教学反思管理</a>
                 </div>
             </div>
-            <div class="menu-item">
-                <a onclick="toggleMenu('toolSub')">辅助工具</a>
-                <div id="toolSub" class="submenu">
-                    <a onclick="switchModule('toolPanel')">外部工具链接</a>
-                    <a onclick="switchModule('refPanel')">参考文献库</a>
-                </div>
-            </div>
+            <div class="menu-item"><a onclick="switchModule('toolPanel')">辅助工具</a></div>
         </aside>
         <main class="sys-content">
             <!--首页看板-->
             <div id="homePanel" class="content-panel">
                 <div class="stat-card-wrap">
-                    <div class="stat-card"><div class="card-num green">0</div><div class="card-title">教学计划</div></div>
-                    <div class="stat-card"><div class="card-num green">0</div><div class="card-title">任务数量</div></div>
-                    <div class="stat-card"><div class="card-num green">0</div><div class="card-title">课程总数</div></div>
-                    <div class="stat-card"><div class="card-num green">0</div><div class="card-title">教研记录</div></div>
+                    <div class="stat-card"><div class="card-num green" id="planCount">0</div><div class="card-title">教学计划</div></div>
+                    <div class="stat-card"><div class="card-num green" id="taskCount">0</div><div class="card-title">任务数量</div></div>
+                    <div class="stat-card"><div class="card-num green" id="courseCount">0</div><div class="card-title">课程总数</div></div>
+                    <div class="stat-card"><div class="card-num green" id="researchCount">0</div><div class="card-title">教研记录</div></div>
                 </div>
                 <div class="chart-wrap">
                     <div class="chart-card"><canvas id="chart1"></canvas></div>

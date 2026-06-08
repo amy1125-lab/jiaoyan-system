@@ -69,7 +69,7 @@ body{
     cursor:pointer;
 }
 
-/*====系统首页布局====*/
+/*====系统布局====*/
 .sys-container{
     min-height:100vh;
     display:flex;
@@ -125,8 +125,9 @@ body{
     padding:0 20px;
     cursor:pointer;
     color:#333;
+    text-decoration:none;
 }
-.menu-item > a:hover{
+.menu-item > a:hover, .menu-item.active > a{
     background:#ecf5ff;
     color:#2980b9;
 }
@@ -141,9 +142,11 @@ body{
     padding-left:36px;
     cursor:pointer;
     color:#555;
+    text-decoration:none;
 }
 .submenu a:hover{
     background:#e4edf7;
+    color:#2980b9;
 }
 .sys-content{
     flex:1;
@@ -154,7 +157,7 @@ body{
     width:100%;
 }
 
-/*====头部按钮组====*/
+/*====按钮样式====*/
 .panel-header{
     display:flex;
     justify-content:space-between;
@@ -213,9 +216,6 @@ body{
     padding:3px 8px;
     font-size:12px;
 }
-.upload-label{
-    cursor:pointer;
-}
 
 /*====表单通用====*/
 .form-row{
@@ -251,7 +251,7 @@ textarea{
     color:#e74c3c;
 }
 
-/*====卡片统计====*/
+/*====统计卡片====*/
 .stat-card-wrap{
     display:grid;
     grid-template-columns: repeat(4,1fr);
@@ -378,7 +378,7 @@ iframe{
     border:0;
 }
 
-/*========课后教学反思 新增专属样式========*/
+/*====课后教学反思 新增专属样式====*/
 .ref-top-btn-group{
     display: flex;
     gap:12px;

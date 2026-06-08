@@ -28,7 +28,7 @@ function setStorage(key, arr) {
 (function initAdmin() {
     let userArr = getStorage(DB_KEY.user);
     if (userArr.length === 0) {
-        userArr.push({ account: "admin", pwd: "123456", name: "研学导师" });
+        userArr.push({ account: "admin", pwd: "123456", name: "赖悦文" });
         setStorage(DB_KEY.user, userArr);
     }
 })();
@@ -77,6 +77,7 @@ function login() {
     document.getElementById("topUserName").innerHTML = `登录用户：${user.name} <span class="role-tag">普通授课权限</span>`;
     initAllSelectOpt();
     renderAllTable();
+    updateHomeStats();
 }
 //注册账号
 function register() {
@@ -119,6 +120,8 @@ function toggleMenu(id) {
 function switchModule(id) {
     document.querySelectorAll(".content-panel").forEach(el => el.style.display = "none");
     document.getElementById(id).style.display = "block";
+    document.querySelectorAll(".menu-item").forEach(el => el.classList.remove("active"));
+    event.target.closest(".menu-item").classList.add("active");
 }
 
 //====================下拉框初始化(课程联动：听评课、教学反思)====================
@@ -132,6 +135,14 @@ function initAllSelectOpt() {
     if(refSel) refSel.innerHTML = optHtml;
     if(listenSel) listenSel.innerHTML = optHtml;
     if(listenAddSel) listenAddSel.innerHTML = optHtml;
+}
+
+//更新首页统计数据
+function updateHomeStats(){
+    document.getElementById("planCount").innerText = getStorage(DB_KEY.plan).length;
+    document.getElementById("taskCount").innerText = getStorage(DB_KEY.task).length;
+    document.getElementById("courseCount").innerText = getStorage(DB_KEY.course).length;
+    document.getElementById("researchCount").innerText = getStorage(DB_KEY.research).length;
 }
 
 //全页面表格统一渲染入口
@@ -166,6 +177,7 @@ function savePlan() {
     setStorage(DB_KEY.plan, arr);
     renderPlan();
     addPlanFromCalendar();
+    updateHomeStats();
 }
 function renderPlan() {
     let arr = getStorage(DB_KEY.plan);
@@ -190,6 +202,7 @@ function deleteSelectedPlan() {
     let arr = getStorage(DB_KEY.plan).filter(s => !s.check);
     setStorage(DB_KEY.plan, arr);
     renderPlan();
+    updateHomeStats();
 }
 function exportPlanTable() {
     let arr = getStorage(DB_KEY.plan);
@@ -219,6 +232,7 @@ function submitTask() {
     setStorage(DB_KEY.task, arr);
     renderTask();
     newTask();
+    updateHomeStats();
 }
 function renderTask() {
     let arr = getStorage(DB_KEY.task);
@@ -242,6 +256,7 @@ function deleteSelectedTask() {
     let arr = getStorage(DB_KEY.task).filter(s => !s.check);
     setStorage(DB_KEY.task, arr);
     renderTask();
+    updateHomeStats();
 }
 function exportTaskTable() {
     let arr = getStorage(DB_KEY.task);
@@ -316,6 +331,7 @@ function saveResearch() {
     }
     setStorage(DB_KEY.research,arr);
     renderResearch();openAddResearch();
+    updateHomeStats();
 }
 function renderResearch(filter=null){
     let list=filter||getStorage(DB_KEY.research);
@@ -334,412 +350,10 @@ function checkRes(id){
 }
 function batchDelResearch(){
     let arr=getStorage(DB_KEY.research).filter(x=>!x.check);setStorage(DB_KEY.research,arr);renderResearch();
+    updateHomeStats();
 }
 function filterResearch(){
     let c=document.getElementById("resCateFilter").value;
     let d=document.getElementById("resDateFilter").value;
     let all=getStorage(DB_KEY.research);
-    let res=all.filter(x=>{
-        let f1=(c=="all"||x.cate==c);
-        let f2=(!d||x.time==d);
-        return f1&&f2;
-    });
-    renderResearch(res);
-}
-function resetFilterResearch(){
-    document.getElementById("resCateFilter").value="all";document.getElementById("resDateFilter").value="";renderResearch();
-}
-function openPreviewRes(id){
-    let arr=getStorage(DB_KEY.research);
-    let o=arr.find(x=>x.id==id);
-    document.getElementById("resPreviewBox").innerText=`主题：${o.title}\n分类：${o.cate}\n日期：${o.time}\n录入人：${o.user}`;
-    document.getElementById("resPreviewModal").style.display="flex";
-}
-function closeResPreviewModal(){document.getElementById("resPreviewModal").style.display="none";}
-function batchDownResearch(){alert("批量下载附件模拟触发");}
-function closeResUploadModal(){document.getElementById("resUploadModal").style.display="none";}
-function saveResFile(){alert("教研附件上传成功");closeResUploadModal();renderResearch();}
-
-//====================5、听评课====================
-function openAddListen(){
-    document.getElementById("listenUser").value=nowUser.name;
-    document.getElementById("listenCourse").value="";
-    document.getElementById("listenScore").value="";
-    document.getElementById("listenRemark").value="";
-    document.getElementById("editListenId").value="";
-}
-function saveListenRecord(){
-    let user=document.getElementById("listenUser").value.trim();
-    let course=document.getElementById("listenCourse").value;
-    let score=document.getElementById("listenScore").value;
-    let remark=document.getElementById("listenRemark").value.trim();
-    let eid=document.getElementById("editListenId").value;
-    if(!user||!course) return alert("听课人、授课课程必填！");
-    let arr=getStorage(DB_KEY.listen);
-    if(eid){
-        let o=arr.find(x=>x.id==eid);
-        o.user=user;o.course=course;o.score=score;o.remark=remark;
-    }else{
-        arr.push({id:Date.now(),user,course,score,remark,time:new Date().toLocaleDateString(),check:false});
-    }
-    setStorage(DB_KEY.listen,arr);
-    renderListen();openAddListen();
-}
-function renderListen(filter=null){
-    let list=filter||getStorage(DB_KEY.listen);
-    let html="";
-    list.forEach(i=>{
-        html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkListen(${i.id})"></td>
-        <td>${i.user}</td><td>${i.course}</td><td>${i.time}</td><td>${i.score||'无'}</td>
-        <td>无附件</td><td><button onclick="openListenDetail(${i.id})" class="gray-btn small">查看</button></td></tr>`;
-    });
-    document.getElementById("listenTableBody").innerHTML=html;
-}
-function checkListen(id){
-    let arr=getStorage(DB_KEY.listen);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.listen,arr);renderListen();
-}
-function batchDelListen(){
-    let arr=getStorage(DB_KEY.listen).filter(x=>!x.check);setStorage(DB_KEY.listen,arr);renderListen();
-}
-function filterListen(){
-    let c=document.getElementById("listenCourseFilter").value;
-    let d=document.getElementById("listenDateFilter").value;
-    let all=getStorage(DB_KEY.listen);
-    let res=all.filter(x=>{
-        let f1=(c=="all"||x.course==c);
-        let f2=(!d||x.time==d);
-        return f1&&f2;
-    });
-    renderListen(res);
-}
-function resetFilterListen(){
-    document.getElementById("listenCourseFilter").value="all";document.getElementById("listenDateFilter").value="";renderListen();
-}
-function openListenDetail(id){
-    let arr=getStorage(DB_KEY.listen);
-    let o=arr.find(x=>x.id==id);
-    document.getElementById("listenDetailBox").innerText=`听课人：${o.user}\n课程：${o.course}\n日期：${o.time}\n评分：${o.score||'无'}\n备注：${o.remark||'无'}`;
-    document.getElementById("listenDetailModal").style.display="flex";
-}
-function closeListenDetailModal(){document.getElementById("listenDetailModal").style.display="none";}
-function exportListenExcel(){
-    let arr=getStorage(DB_KEY.listen);
-    let csv="听课人,课程,日期,评分,备注\n";
-    arr.forEach(i=>csv+=`${i.user},${i.course},${i.time},${i.score||'无'},"${i.remark||'无'}"\n`);
-    downloadFile(csv,"听课记录.csv");
-}
-function closeListenUploadModal(){document.getElementById("listenUploadModal").style.display="none";}
-function saveListenUpload(){alert("附件上传成功");closeListenUploadModal();renderListen();}
-
-//====================6、课程资源库====================
-function openCourseModal(){
-    document.getElementById("courseLine").value="研学实践";
-    document.getElementById("courseName").value="";
-    document.getElementById("courseOwner").value="";
-    document.getElementById("courseAge").value="";
-    document.getElementById("courseDuration").value="";
-}
-function submitCourse(){
-    let line=document.getElementById("courseLine").value;
-    let name=document.getElementById("courseName").value.trim();
-    let owner=document.getElementById("courseOwner").value.trim();
-    let age=document.getElementById("courseAge").value;
-    let duration=document.getElementById("courseDuration").value;
-    if(!name||!owner) return alert("课程名称、主讲人必填！");
-    let arr=getStorage(DB_KEY.course);
-    arr.push({id:Date.now(),line,name,owner,age,duration,check:false});
-    setStorage(DB_KEY.course,arr);
-    renderCourse();closeCourseModal();
-}
-function renderCourse(){
-    let arr=getStorage(DB_KEY.course);
-    let html="";
-    arr.forEach(i=>{
-        html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkCourse(${i.id})"></td>
-        <td>${i.line}</td><td>${i.name}</td><td>${i.owner}</td><td>${i.age||'无'}</td><td>${i.duration||'无'}</td>
-        <td>-</td><td>-</td><td>-</td><td>-</td><td><button onclick="editCourse(${i.id})" class="blue-btn small">编辑</button></td></tr>`;
-    });
-    document.getElementById("courseTableBody").innerHTML=html;
-}
-function checkCourse(id){
-    let arr=getStorage(DB_KEY.course);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.course,arr);renderCourse();
-}
-function deleteSelectedCourse(){
-    let arr=getStorage(DB_KEY.course).filter(x=>!x.check);setStorage(DB_KEY.course,arr);renderCourse();
-}
-function batchDownloadCourse(){alert("批量下载模拟触发");}
-function batchUploadCourse(){alert("批量导入模拟触发");}
-function closeCourseModal(){document.getElementById("courseModal").style.display="none";}
-function editCourse(id){alert("编辑功能开发中");}
-
-//====================7、文档模板库====================
-function openTemplateModal(){
-    document.getElementById("templateName").value="";
-    document.getElementById("templateType").value="教案";
-}
-function submitTemplate(){
-    let name=document.getElementById("templateName").value.trim();
-    let type=document.getElementById("templateType").value;
-    if(!name) return alert("模板名称必填！");
-    let arr=getStorage(DB_KEY.template);
-    arr.push({id:Date.now(),name,type,user:nowUser.name,check:false});
-    setStorage(DB_KEY.template,arr);
-    renderTemplate();closeTemplateModal();
-}
-function renderTemplate(){
-    let arr=getStorage(DB_KEY.template);
-    let html="";
-    arr.forEach(i=>{
-        html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkTemplate(${i.id})"></td>
-        <td>${i.name}</td><td>${i.type}</td><td>${i.user}</td><td>-</td><td>-</td><td>-</td><td><button onclick="deleteTemplate(${i.id})" class="red-btn small">删除</button></td></tr>`;
-    });
-    document.getElementById("templateTableBody").innerHTML=html;
-}
-function checkTemplate(id){
-    let arr=getStorage(DB_KEY.template);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.template,arr);renderTemplate();
-}
-function deleteSelectedTemplate(){
-    let arr=getStorage(DB_KEY.template).filter(x=>!x.check);setStorage(DB_KEY.template,arr);renderTemplate();
-}
-function batchDownloadTemplate(){alert("批量下载模拟触发");}
-function closeTemplateModal(){document.getElementById("templateModal").style.display="none";}
-
-//====================8、辅助工具====================
-function saveNewTool(){
-    let name=document.getElementById("toolNameInput").value.trim();
-    let url=document.getElementById("toolUrlInput").value.trim();
-    if(!name||!url) return alert("工具名称、链接必填！");
-    let arr=getStorage(DB_KEY.tool);
-    arr.push({id:Date.now(),name,url,check:false});
-    setStorage(DB_KEY.tool,arr);
-    renderTool();
-    document.getElementById("toolNameInput").value="";
-    document.getElementById("toolUrlInput").value="";
-}
-function renderTool(){
-    let arr=getStorage(DB_KEY.tool);
-    let html="";
-    arr.forEach(i=>{
-        html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <span>${i.name}</span>
-            <a href="${i.url}" target="_blank">打开链接</a>
-            <button onclick="editTool(${i.id})" class="blue-btn small">编辑</button>
-            <button onclick="deleteTool(${i.id})" class="red-btn small">删除</button>
-        </div>`;
-    });
-    document.getElementById("toolListContainer").innerHTML=html;
-}
-function editTool(id){
-    let arr=getStorage(DB_KEY.tool);
-    let o=arr.find(x=>x.id==id);
-    document.getElementById("editToolId").value=id;
-    document.getElementById("editToolName").value=o.name;
-    document.getElementById("editToolUrl").value=o.url;
-    document.getElementById("editToolModal").style.display="flex";
-}
-function updateToolLink(){
-    let id=document.getElementById("editToolId").value;
-    let name=document.getElementById("editToolName").value.trim();
-    let url=document.getElementById("editToolUrl").value.trim();
-    let arr=getStorage(DB_KEY.tool);
-    let o=arr.find(x=>x.id==id);
-    o.name=name;o.url=url;
-    setStorage(DB_KEY.tool,arr);
-    renderTool();closeEditToolModal();
-}
-function deleteTool(id){
-    let arr=getStorage(DB_KEY.tool).filter(x=>x.id!=id);
-    setStorage(DB_KEY.tool,arr);
-    renderTool();
-}
-function closeEditToolModal(){document.getElementById("editToolModal").style.display="none";}
-
-//====================9、参考文献库====================
-function openRefUploadModal(){document.getElementById("refFileName").value="";document.getElementById("refFileCate").value="教案素材";document.getElementById("refUploadModal").style.display="flex";}
-function openRefLinkModal(){document.getElementById("refLinkName").value="";document.getElementById("refLinkUrl").value="";document.getElementById("refLinkCate").value="教案素材";document.getElementById("refLinkModal").style.display="flex";}
-function saveRefFile(){
-    let name=document.getElementById("refFileName").value.trim();
-    let cate=document.getElementById("refFileCate").value;
-    if(!name) return alert("资源名称必填！");
-    let arr=getStorage(DB_KEY.ref);
-    arr.push({id:Date.now(),name,cate,type:"file",check:false});
-    setStorage(DB_KEY.ref,arr);
-    renderRef();closeRefUploadModal();
-}
-function saveRefLink(){
-    let name=document.getElementById("refLinkName").value.trim();
-    let url=document.getElementById("refLinkUrl").value.trim();
-    let cate=document.getElementById("refLinkCate").value;
-    if(!name||!url) return alert("资源名称、链接必填！");
-    let arr=getStorage(DB_KEY.ref);
-    arr.push({id:Date.now(),name,cate,url,type:"link",check:false});
-    setStorage(DB_KEY.ref,arr);
-    renderRef();closeRefLinkModal();
-}
-function renderRef(){
-    let arr=getStorage(DB_KEY.ref);
-    let html="";
-    arr.forEach(i=>{
-        html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkRef(${i.id})"></td>
-        <td>${i.name}</td><td>${i.cate}</td><td>${i.type=="file"?"文件":"外链"}</td>
-        <td>-</td><td><button onclick="previewRef(${i.id})" class="gray-btn small">预览</button></td></tr>`;
-    });
-    document.getElementById("refTableBody").innerHTML=html;
-}
-function checkRef(id){
-    let arr=getStorage(DB_KEY.ref);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.ref,arr);renderRef();
-}
-function batchDelRef(){
-    let arr=getStorage(DB_KEY.ref).filter(x=>!x.check);setStorage(DB_KEY.ref,arr);renderRef();
-}
-function previewRef(id){alert("预览功能开发中");}
-function closeRefUploadModal(){document.getElementById("refUploadModal").style.display="none";}
-function closeRefLinkModal(){document.getElementById("refLinkModal").style.display="none";}
-function closeRefPreviewModal(){document.getElementById("refPreviewModal").style.display="none";}
-
-//====================10、AI课程研发====================
-function openSelectSourceFile(){alert("素材选择功能开发中");}
-function confirmSelectSource(){closeAiSourceModal();}
-function closeAiSourceModal(){document.getElementById("aiSourceModal").style.display="none";}
-function aiStartGenerate(){
-    let prompt=document.getElementById("aiPrompt").value.trim();
-    if(!prompt) return alert("请输入课程需求！");
-    document.getElementById("aiResult").value=`基于需求：${prompt}\nAI生成的课程内容（示例）：\n课程主题：XXX\n适用学段：XXX\n课时：XXX\n课程目标：XXX\n教学流程：XXX\n实践环节：XXX\n评价方式：XXX`;
-}
-function saveAiToCourseRes(){
-    let res=document.getElementById("aiResult").value.trim();
-    if(!res) return alert("无生成结果可保存！");
-    alert("已存入课程库（模拟）");
-}
-function exportAllAiDoc(){
-    let res=document.getElementById("aiResult").value.trim();
-    if(!res) return alert("无生成结果可导出！");
-    downloadFile(res,"AI课程方案.txt");
-}
-function clearAiEdit(){
-    document.getElementById("aiPrompt").value="";
-    document.getElementById("aiResult").value="";
-}
-
-//====================11、课后教学反思管理====================
-function openAddReflection(){
-    document.getElementById("refContent").value="";
-    document.getElementById("editRefId").value="";
-}
-function saveReflection(){
-    let content=document.getElementById("refContent").value.trim();
-    let editId=document.getElementById("editRefId").value;
-    if(!content) return alert("反思内容不能为空！");
-    let arr=getStorage(DB_KEY.reflection);
-    if(editId){
-        let o=arr.find(x=>x.id==editId);
-        o.content=content;
-    }else{
-        arr.push({
-            id:Date.now(),
-            courseId:document.getElementById("refFilterCourse").value,
-            date:document.getElementById("refFilterDate").value||new Date().toLocaleDateString(),
-            user:nowUser.name,
-            content,
-            check:false
-        });
-    }
-    setStorage(DB_KEY.reflection,arr);
-    renderReflection();
-    openAddReflection();
-}
-function renderReflection(filter=null){
-    let list=filter||getStorage(DB_KEY.reflection);
-    let courseList=getStorage(DB_KEY.course);
-    let html="";
-    list.forEach(i=>{
-        let courseName="";
-        if(i.courseId&&i.courseId!="all"){
-            let course=courseList.find(c=>c.id==i.courseId);
-            courseName=course?course.name:"无关联课程";
-        }else{
-            courseName="无关联课程";
-        }
-        html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkReflection(${i.id})"></td>
-        <td>${courseName}</td><td>${i.date}</td><td>${i.user}</td><td>无附件</td>
-        <td><button onclick="viewReflection(${i.id})" class="blue-btn small">查看</button></td></tr>`;
-    });
-    document.getElementById("reflectionTableBody").innerHTML=html;
-}
-function checkReflection(id){
-    let arr=getStorage(DB_KEY.reflection);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.reflection,arr);renderReflection();
-}
-function batchDelReflection(){
-    let arr=getStorage(DB_KEY.reflection).filter(x=>!x.check);setStorage(DB_KEY.reflection,arr);renderReflection();
-}
-function filterReflection(){
-    let course=document.getElementById("refFilterCourse").value;
-    let date=document.getElementById("refFilterDate").value;
-    let all=getStorage(DB_KEY.reflection);
-    let res=all.filter(x=>{
-        let f1=(course=="all"||x.courseId==course);
-        let f2=(!date||x.date==date);
-        return f1&&f2;
-    });
-    renderReflection(res);
-}
-function resetRefFilter(){
-    document.getElementById("refFilterCourse").value="all";document.getElementById("refFilterDate").value="";renderReflection();
-}
-function viewReflection(id){
-    let arr=getStorage(DB_KEY.reflection);
-    let o=arr.find(x=>x.id==id);
-    document.getElementById("refViewBox").innerText=`关联课程：${o.courseId||'无'}\n授课日期：${o.date}\n授课人：${o.user}\n反思内容：\n${o.content}`;
-    document.getElementById("refViewModal").style.display="flex";
-}
-function closeRefViewModal(){document.getElementById("refViewModal").style.display="none";}
-function exportReflectionDoc(){
-    let arr=getStorage(DB_KEY.reflection);
-    let csv="关联课程,授课日期,授课人,反思内容\n";
-    arr.forEach(i=>{
-        let courseName="";
-        if(i.courseId&&i.courseId!="all"){
-            let course=getStorage(DB_KEY.course).find(c=>c.id==i.courseId);
-            courseName=course?course.name:"无关联课程";
-        }else{
-            courseName="无关联课程";
-        }
-        csv+=`${courseName},${i.date},${i.user},"${i.content}"\n`;
-    });
-    downloadFile(csv,"教学反思.csv");
-}
-function openUploadRefFile(){
-    let arr=getStorage(DB_KEY.reflection);
-    let html=`<option value="">选择反思记录</option>`;
-    arr.forEach(i=>html+=`<option value="${i.id}">${i.date} - ${i.user}</option>`);
-    document.getElementById("refUploadTarget").innerHTML=html;
-    document.getElementById("refUploadModal").style.display="flex";
-}
-function saveRefUploadFile(){alert("附件上传成功");closeRefUploadModal();}
-function closeRefUploadModal(){document.getElementById("refUploadModal").style.display="none";}
-
-//====================页面加载完成初始化====================
-window.onload=function(){
-    // 初始化Chart.js（首页图表占位）
-    if(typeof Chart!="undefined"){
-        let ctx1=document.getElementById("chart1");
-        let ctx2=document.getElementById("chart2");
-        if(ctx1){
-            new Chart(ctx1,{
-                type:"bar",
-                data:{labels:["1月","2月","3月"],datasets:[{label:"示例数据",data:[10,20,30]}]}
-            });
-        }
-        if(ctx2){
-            new Chart(ctx2,{
-                type:"line",
-                data:{labels:["1月","2月","3月"],datasets:[{label:"示例数据",data:[10,20,30]}]}
-            });
-        }
-    }
-}
+    let res=all
