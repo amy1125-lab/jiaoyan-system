@@ -128,7 +128,7 @@ function switchModule(id) {
 function initAllSelectOpt() {
     let courseList = getStorage(DB_KEY.course);
     let optHtml = `<option value="all">全部课程</option>`;
-    courseList.forEach(item => optHtml += `<option value="${item.id}">${item.courseName}</option>`);
+    courseList.forEach(item => optHtml += `<option value="${item.id}">${item.name}</option>`);
     let refSel = document.getElementById("refFilterCourse");
     let listenSel = document.getElementById("listenCourseFilter");
     let listenAddSel = document.getElementById("listenCourse");
@@ -523,14 +523,18 @@ function checkTemplate(id){
 function deleteSelectedTemplate(){
     let arr=getStorage(DB_KEY.template).filter(x=>!x.check);setStorage(DB_KEY.template,arr);renderTemplate();
 }
-function batchDownloadTemplate(){alert("批量下载模拟触发");}
+function deleteTemplate(id){
+    let arr=getStorage(DB_KEY.template).filter(x=>x.id!==id);
+    setStorage(DB_KEY.template,arr);renderTemplate();
+}
 function closeTemplateModal(){document.getElementById("templateModal").style.display="none";}
+function batchDownloadTemplate(){alert("模板批量下载模拟触发");}
 
-//====================8、辅助工具====================
+//====================8、辅助工具模块====================
 function saveNewTool(){
     let name=document.getElementById("toolNameInput").value.trim();
     let url=document.getElementById("toolUrlInput").value.trim();
-    if(!name||!url) return alert("工具名称、链接必填！");
+    if(!name||!url) return alert("工具名称和链接不能为空！");
     let arr=getStorage(DB_KEY.tool);
     arr.push({id:Date.now(),name,url,check:false});
     setStorage(DB_KEY.tool,arr);
@@ -542,69 +546,68 @@ function renderTool(){
     let arr=getStorage(DB_KEY.tool);
     let html="";
     arr.forEach(i=>{
-        html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        html+=`<div class="tool-item">
             <span>${i.name}</span>
-            <a href="${i.url}" target="_blank">打开链接</a>
-            <button onclick="editTool(${i.id})" class="blue-btn small">编辑</button>
-            <button onclick="deleteTool(${i.id})" class="red-btn small">删除</button>
+            <a href="${i.url}" target="_blank">打开</a>
+            <button onclick="openEditTool(${i.id})">编辑</button>
+            <button onclick="delTool(${i.id})">删除</button>
         </div>`;
     });
     document.getElementById("toolListContainer").innerHTML=html;
 }
-function editTool(id){
+function delTool(id){
+    let arr=getStorage(DB_KEY.tool).filter(x=>x.id!==id);
+    setStorage(DB_KEY.tool,arr);renderTool();
+}
+function openEditTool(id){
     let arr=getStorage(DB_KEY.tool);
     let o=arr.find(x=>x.id==id);
-    document.getElementById("editToolId").value=id;
     document.getElementById("editToolName").value=o.name;
     document.getElementById("editToolUrl").value=o.url;
+    document.getElementById("editToolId").value=id;
     document.getElementById("editToolModal").style.display="flex";
 }
+function closeEditToolModal(){document.getElementById("editToolModal").style.display="none";}
 function updateToolLink(){
     let id=document.getElementById("editToolId").value;
     let name=document.getElementById("editToolName").value.trim();
     let url=document.getElementById("editToolUrl").value.trim();
+    if(!name||!url) return alert("名称和链接不能为空！");
     let arr=getStorage(DB_KEY.tool);
     let o=arr.find(x=>x.id==id);
     o.name=name;o.url=url;
-    setStorage(DB_KEY.tool,arr);
-    renderTool();closeEditToolModal();
+    setStorage(DB_KEY.tool,arr);renderTool();closeEditToolModal();
 }
-function deleteTool(id){
-    let arr=getStorage(DB_KEY.tool).filter(x=>x.id!=id);
-    setStorage(DB_KEY.tool,arr);
-    renderTool();
-}
-function closeEditToolModal(){document.getElementById("editToolModal").style.display="none";}
 
-//====================9、参考文献库====================
-function openRefUploadModal(){document.getElementById("refFileName").value="";document.getElementById("refFileCate").value="教案素材";document.getElementById("refUploadModal").style.display="flex";}
-function openRefLinkModal(){document.getElementById("refLinkName").value="";document.getElementById("refLinkUrl").value="";document.getElementById("refLinkCate").value="教案素材";document.getElementById("refLinkModal").style.display="flex";}
+//====================9、参考文献模块====================
+function openRefUploadModal(){document.getElementById("refUploadModal").style.display="flex";}
+function openRefLinkModal(){document.getElementById("refLinkModal").style.display="flex";}
+function closeRefUploadModal(){document.getElementById("refUploadModal").style.display="none";}
+function closeRefLinkModal(){document.getElementById("refLinkModal").style.display="none";}
 function saveRefFile(){
     let name=document.getElementById("refFileName").value.trim();
     let cate=document.getElementById("refFileCate").value;
-    if(!name) return alert("资源名称必填！");
+    if(!name) return alert("资源名称不能为空！");
     let arr=getStorage(DB_KEY.ref);
-    arr.push({id:Date.now(),name,cate,type:"file",check:false});
-    setStorage(DB_KEY.ref,arr);
-    renderRef();closeRefUploadModal();
+    arr.push({id:Date.now(),name,cate,type:"文件",check:false});
+    setStorage(DB_KEY.ref,arr);renderRef();closeRefUploadModal();
 }
 function saveRefLink(){
     let name=document.getElementById("refLinkName").value.trim();
     let url=document.getElementById("refLinkUrl").value.trim();
     let cate=document.getElementById("refLinkCate").value;
-    if(!name||!url) return alert("资源名称、链接必填！");
+    if(!name||!url) return alert("名称和链接不能为空！");
     let arr=getStorage(DB_KEY.ref);
-    arr.push({id:Date.now(),name,cate,url,type:"link",check:false});
-    setStorage(DB_KEY.ref,arr);
-    renderRef();closeRefLinkModal();
+    arr.push({id:Date.now(),name,cate,url,type:"外链",check:false});
+    setStorage(DB_KEY.ref,arr);renderRef();closeRefLinkModal();
 }
 function renderRef(){
     let arr=getStorage(DB_KEY.ref);
     let html="";
     arr.forEach(i=>{
         html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkRef(${i.id})"></td>
-        <td>${i.name}</td><td>${i.cate}</td><td>${i.type=="file"?"文件":"外链"}</td>
-        <td>-</td><td><button onclick="previewRef(${i.id})" class="gray-btn small">预览</button></td></tr>`;
+        <td>${i.name}</td><td>${i.cate}</td><td>${i.type}</td>
+        <td>${i.type==="外链"?`<a href="${i.url}" target="_blank">访问</a>`:"-"}</td></tr>`;
     });
     document.getElementById("refTableBody").innerHTML=html;
 }
@@ -613,151 +616,157 @@ function checkRef(id){
     let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.ref,arr);renderRef();
 }
 function batchDelRef(){
-    let arr=getStorage(DB_KEY.ref).filter(x=>!x.check);setStorage(DB_KEY.ref,arr);renderRef();
-}
-function previewRef(id){alert("预览功能开发中");}
-function closeRefUploadModal(){document.getElementById("refUploadModal").style.display="none";}
-function closeRefLinkModal(){document.getElementById("refLinkModal").style.display="none";}
-function closeRefPreviewModal(){document.getElementById("refPreviewModal").style.display="none";}
-
-//====================10、AI课程研发====================
-function openSelectSourceFile(){alert("素材选择功能开发中");}
-function confirmSelectSource(){closeAiSourceModal();}
-function closeAiSourceModal(){document.getElementById("aiSourceModal").style.display="none";}
-function aiStartGenerate(){
-    let prompt=document.getElementById("aiPrompt").value.trim();
-    if(!prompt) return alert("请输入课程需求！");
-    document.getElementById("aiResult").value=`基于需求：${prompt}\nAI生成的课程内容（示例）：\n课程主题：XXX\n适用学段：XXX\n课时：XXX\n课程目标：XXX\n教学流程：XXX\n实践环节：XXX\n评价方式：XXX`;
-}
-function saveAiToCourseRes(){
-    let res=document.getElementById("aiResult").value.trim();
-    if(!res) return alert("无生成结果可保存！");
-    alert("已存入课程库（模拟）");
-}
-function exportAllAiDoc(){
-    let res=document.getElementById("aiResult").value.trim();
-    if(!res) return alert("无生成结果可导出！");
-    downloadFile(res,"AI课程方案.txt");
-}
-function clearAiEdit(){
-    document.getElementById("aiPrompt").value="";
-    document.getElementById("aiResult").value="";
+    let arr=getStorage(DB_KEY.ref).filter(x=>!x.check);
+    setStorage(DB_KEY.ref,arr);renderRef();
 }
 
-//====================11、课后教学反思管理====================
-function openAddReflection(){
-    document.getElementById("refContent").value="";
-    document.getElementById("editRefId").value="";
-}
+//====================10、教学反思模块====================
 function saveReflection(){
+    let courseId=document.getElementById("refFilterCourse").value;
     let content=document.getElementById("refContent").value.trim();
-    let editId=document.getElementById("editRefId").value;
     if(!content) return alert("反思内容不能为空！");
     let arr=getStorage(DB_KEY.reflection);
-    if(editId){
-        let o=arr.find(x=>x.id==editId);
-        o.content=content;
-    }else{
-        arr.push({
-            id:Date.now(),
-            courseId:document.getElementById("refFilterCourse").value,
-            date:document.getElementById("refFilterDate").value||new Date().toLocaleDateString(),
-            user:nowUser.name,
-            content,
-            check:false
-        });
-    }
+    arr.push({
+        id:Date.now(),
+        courseId:courseId,
+        content:content,
+        date:new Date().toLocaleDateString(),
+        user:nowUser.name,
+        check:false
+    });
     setStorage(DB_KEY.reflection,arr);
     renderReflection();
-    openAddReflection();
+    document.getElementById("refContent").value="";
 }
 function renderReflection(filter=null){
     let list=filter||getStorage(DB_KEY.reflection);
-    let courseList=getStorage(DB_KEY.course);
+    let courseAll=getStorage(DB_KEY.course);
     let html="";
     list.forEach(i=>{
-        let courseName="";
-        if(i.courseId&&i.courseId!="all"){
-            let course=courseList.find(c=>c.id==i.courseId);
-            courseName=course?course.name:"无关联课程";
-        }else{
-            courseName="无关联课程";
+        let cName="全部课程";
+        if(i.courseId!="all"){
+            let c=courseAll.find(x=>x.id==i.courseId);
+            if(c) cName=c.name;
         }
         html+=`<tr><td><input type="checkbox" ${i.check?'checked':''} onclick="checkReflection(${i.id})"></td>
-        <td>${courseName}</td><td>${i.date}</td><td>${i.user}</td><td>无附件</td>
-        <td><button onclick="viewReflection(${i.id})" class="blue-btn small">查看</button></td></tr>`;
+        <td>${cName}</td><td>${i.date}</td><td>${i.user}</td>
+        <td><button onclick="openRefView(${i.id})">查看详情</button></td></tr>`;
     });
     document.getElementById("reflectionTableBody").innerHTML=html;
 }
 function checkReflection(id){
     let arr=getStorage(DB_KEY.reflection);
-    let o=arr.find(x=>x.id==id);o.check=!o.check;setStorage(DB_KEY.reflection,arr);renderReflection();
+    let o=arr.find(x=>x.id==id);o.check=!o.check;
+    setStorage(DB_KEY.reflection,arr);renderReflection();
 }
 function batchDelReflection(){
-    let arr=getStorage(DB_KEY.reflection).filter(x=>!x.check);setStorage(DB_KEY.reflection,arr);renderReflection();
+    let arr=getStorage(DB_KEY.reflection).filter(x=>!x.check);
+    setStorage(DB_KEY.reflection,arr);renderReflection();
 }
 function filterReflection(){
-    let course=document.getElementById("refFilterCourse").value;
-    let date=document.getElementById("refFilterDate").value;
+    let cid=document.getElementById("refFilterCourse").value;
+    let d=document.getElementById("refFilterDate").value;
     let all=getStorage(DB_KEY.reflection);
     let res=all.filter(x=>{
-        let f1=(course=="all"||x.courseId==course);
-        let f2=(!date||x.date==date);
+        let f1=(cid=="all"||x.courseId==cid);
+        let f2=(!d||x.date==d);
         return f1&&f2;
     });
     renderReflection(res);
 }
 function resetRefFilter(){
-    document.getElementById("refFilterCourse").value="all";document.getElementById("refFilterDate").value="";renderReflection();
+    document.getElementById("refFilterCourse").value="all";
+    document.getElementById("refFilterDate").value="";
+    renderReflection();
 }
-function viewReflection(id){
+function openRefView(id){
     let arr=getStorage(DB_KEY.reflection);
     let o=arr.find(x=>x.id==id);
-    document.getElementById("refViewBox").innerText=`关联课程：${o.courseId||'无'}\n授课日期：${o.date}\n授课人：${o.user}\n反思内容：\n${o.content}`;
+    document.getElementById("refViewBox").innerText=o.content;
     document.getElementById("refViewModal").style.display="flex";
 }
 function closeRefViewModal(){document.getElementById("refViewModal").style.display="none";}
 function exportReflectionDoc(){
     let arr=getStorage(DB_KEY.reflection);
-    let csv="关联课程,授课日期,授课人,反思内容\n";
+    let csv="关联课程,日期,撰写人,反思内容\n";
     arr.forEach(i=>{
-        let courseName="";
-        if(i.courseId&&i.courseId!="all"){
-            let course=getStorage(DB_KEY.course).find(c=>c.id==i.courseId);
-            courseName=course?course.name:"无关联课程";
-        }else{
-            courseName="无关联课程";
+        let cName="全部课程";
+        if(i.courseId!="all"){
+            let c=getStorage(DB_KEY.course).find(x=>x.id==i.courseId);
+            if(c) cName=c.name;
         }
-        csv+=`${courseName},${i.date},${i.user},"${i.content}"\n`;
+        csv+=`${cName},${i.date},${i.user},"${i.content}"\n`;
     });
     downloadFile(csv,"教学反思.csv");
 }
-function openUploadRefFile(){
-    let arr=getStorage(DB_KEY.reflection);
-    let html=`<option value="">选择反思记录</option>`;
-    arr.forEach(i=>html+=`<option value="${i.id}">${i.date} - ${i.user}</option>`);
-    document.getElementById("refUploadTarget").innerHTML=html;
-    document.getElementById("refUploadModal").style.display="flex";
-}
-function saveRefUploadFile(){alert("附件上传成功");closeRefUploadModal();}
-function closeRefUploadModal(){document.getElementById("refUploadModal").style.display="none";}
 
-//====================页面加载完成初始化====================
-window.onload=function(){
-    if(typeof Chart!="undefined"){
-        let ctx1=document.getElementById("chart1");
-        let ctx2=document.getElementById("chart2");
-        if(ctx1){
-            new Chart(ctx1,{
-                type:"bar",
-                data:{labels:["1月","2月","3月"],datasets:[{label:"示例数据",data:[10,20,30]}]}
-            });
-        }
-        if(ctx2){
-            new Chart(ctx2,{
-                type:"line",
-                data:{labels:["1月","2月","3月"],datasets:[{label:"示例数据",data:[10,20,30]}]}
-            });
-        }
-    }
+//====================11、AI课程研发模块====================
+let aiResultCache = "";
+function aiStartGenerate(){
+    let prompt=document.getElementById("aiPrompt").value.trim();
+    if(!prompt) return alert("请输入课程需求！");
+    aiResultCache = `【AI生成课程方案】\n需求：${prompt}\n\n已模拟生成完整课程设计、流程、教案与拓展内容。`;
+    document.getElementById("aiResult").value = aiResultCache;
 }
+function saveAiToCourseRes(){
+    if(!aiResultCache) return alert("暂无生成内容！");
+    alert("已保存内容至课程库（模拟）");
+}
+function exportAllAiDoc(){
+    if(!aiResultCache) return alert("暂无内容可导出！");
+    downloadFile(aiResultCache,"AI课程方案.txt");
+}
+function clearAiEdit(){
+    document.getElementById("aiPrompt").value="";
+    document.getElementById("aiResult").value="";
+    aiResultCache="";
+}
+function openAiSourceModal(){document.getElementById("aiSourceModal").style.display="flex";}
+function closeAiSourceModal(){document.getElementById("aiSourceModal").style.display="none";}
+function confirmSelectSource(){alert("素材选择完成（模拟）");closeAiSourceModal();}
+
+//====================页面入口：DOM加载完成后执行====================
+window.onload = function(){
+    initAllSelectOpt();
+    renderAllTable();
+    updateHomeStats();
+
+    // 初始化图表(Chart.js)
+    const ctx1 = document.getElementById('chart1');
+    if(ctx1){
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: ['教学计划','任务','课程','教研'],
+                datasets: [{
+                    label: '数据统计',
+                    data: [
+                        getStorage(DB_KEY.plan).length,
+                        getStorage(DB_KEY.task).length,
+                        getStorage(DB_KEY.course).length,
+                        getStorage(DB_KEY.research).length
+                    ],
+                    backgroundColor: '#667eea'
+                }]
+            }
+        });
+    }
+    const ctx2 = document.getElementById('chart2');
+    if(ctx2){
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['听评课','教学反思','参考文献','模板'],
+                datasets: [{
+                    data: [
+                        getStorage(DB_KEY.listen).length,
+                        getStorage(DB_KEY.reflection).length,
+                        getStorage(DB_KEY.ref).length,
+                        getStorage(DB_KEY.template).length
+                    ],
+                    backgroundColor: ['#ff6384','#36a2eb','#ffce56','#4bc0c0']
+                }]
+            }
+        });
+    }
+};
